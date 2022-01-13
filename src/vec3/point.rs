@@ -1,4 +1,13 @@
 use std::ops;
+use num::{ Num, NumCast };
+
+pub trait PointObject {
+    fn new(&self, x: f64, y: f64, z: f64) -> Self;
+    fn new_empty(&self) -> Self;
+    fn x(&self) -> f64;
+    fn y(&self) -> f64;
+    fn z(&self) -> f64;
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Point {
@@ -7,8 +16,8 @@ pub struct Point {
     z: f64,
 }
 
-impl Point {
-    pub fn new(&self, x: f64, y: f64, z: f64) -> Point {
+impl PointObject for Point {
+    fn new(&self, x: f64, y: f64, z: f64) -> Point {
         Point {
             x,
             y,
@@ -16,13 +25,28 @@ impl Point {
         }
     }
 
-    pub fn new_empty(&self) -> Point {
+    fn new_empty(&self) -> Point {
         Point {
             x: 0.0,
             y: 0.0,
             z: 0.0
         }
     }
+
+    fn x(&self) -> f64 {
+        self.x
+    }
+
+    fn y(&self) -> f64 {
+        self.y
+    }
+
+    fn z(&self) -> f64 {
+        self.z
+    }
+}
+
+impl Point {
 
     pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
@@ -33,46 +57,35 @@ impl Point {
     }
 }
 
-impl ops::Add<PointOffset> for Point {
+impl<T> ops::Add<T> for Point where T: PointObject {
     type Output = Point;
 
-    fn add(self, rhs: PointOffset) -> Point {
+    fn add(self, rhs: T) -> Point {
         Point {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
+            x: self.x + rhs.x(),
+            y: self.y + rhs.y(),
+            z: self.z + rhs.z(),
         }
     }
-}
+} 
 
-impl ops::Add<Point> for PointOffset {
+impl<T> ops::Sub<T> for Point where T: PointObject {
     type Output = Point;
 
-    fn add(self, rhs: Point) -> Point {
+    fn sub(self, rhs: T) -> Point {
         Point {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
+            x: self.x - rhs.x(),
+            y: self.y - rhs.y(),
+            z: self.z - rhs.z(),
         }
     }
-}
+} 
 
-impl ops::Add<Point> for Point {
+impl<T> ops::Mul<T> for Point where T: Num + NumCast {
     type Output = Point;
 
-    fn add(self, rhs: Point) -> Point {
-        Point {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
-    }
-}
-
-impl ops::Mul<f64> for Point {
-    type Output = Point;
-
-    fn mul(self, rhs: f64) -> Point {
+    fn mul(self, rhs: T) -> Point {
+        let rhs = T::to_f64(&rhs).unwrap();
         Point {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -81,31 +94,20 @@ impl ops::Mul<f64> for Point {
     }
 }
 
-impl ops::Mul<i32> for Point {
+impl<T> ops::Div<T> for Point where T: Num + NumCast {
     type Output = Point;
 
-    fn mul(self, rhs: i32) -> Point {
-        Point {
-            x: self.x * rhs as f64,
-            y: self.y * rhs as f64,
-            z: self.z * rhs as f64,
-        }
+    fn div(self, rhs: T) -> Point {
+        self * (1.0 / T::to_f64(&rhs).unwrap())
     }
 }
 
-impl ops::Div<f64> for Point {
+
+impl ops::Neg for Point {
     type Output = Point;
 
-    fn div(self, rhs: f64) -> Point {
-        self * (1.0 / rhs)
-    }
-}
-
-impl ops::Div<i32> for Point {
-    type Output = Point;
-
-    fn div(self, rhs: i32) -> Point {
-        self * (1.0 / rhs as f64)
+    fn neg(self) -> Point {
+        self * -1.0
     }
 }
 
@@ -133,14 +135,6 @@ impl ops::IndexMut<usize> for Point {
     }
 }
 
-impl ops::Neg for Point {
-    type Output = Point;
-
-    fn neg(self) -> Point {
-        self * -1.0
-    }
-}
-
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PointOffset {
@@ -149,8 +143,8 @@ pub struct PointOffset {
     z: f64,
 }
 
-impl PointOffset {
-    pub fn new(&self, x: f64, y: f64, z: f64) -> PointOffset {
+impl PointObject for PointOffset {
+    fn new(&self, x: f64, y: f64, z: f64) -> PointOffset {
         PointOffset {
             x,
             y,
@@ -158,11 +152,23 @@ impl PointOffset {
         }
     }
 
-    pub fn new_empty(&self) -> PointOffset {
+    fn new_empty(&self) -> PointOffset {
         PointOffset {
             x: 0.0,
             y: 0.0,
             z: 0.0
         }
+    }
+
+    fn x(&self) -> f64 {
+        self.x
+    }
+
+    fn y(&self) -> f64 {
+        self.y
+    }
+
+    fn z(&self) -> f64 {
+        self.z
     }
 }
