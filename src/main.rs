@@ -1,5 +1,7 @@
 mod vec3;
 
+use vec3::{color::Color, point::Point};
+
 const IMAGE_WIDTH: i32 = 1024;
 const IMAGE_HEIGHT: i32 = 1024;
 
@@ -8,17 +10,18 @@ fn main() {
     
     for j in (0..IMAGE_HEIGHT).rev() {
         for i in 0..IMAGE_WIDTH {
-            let r: f64 = i as f64 / (IMAGE_WIDTH - 1) as f64;
-            let g: f64 = j as f64 / (IMAGE_HEIGHT - 1) as f64;
-            let b: f64 = 0.25;
-
-            let ir = (255.999 * r) as i32; 
-            let ig = (255.999 * g) as i32; 
-            let ib = (255.999 * b) as i32;
-            
-            ppm_image.push_str(& format!("{} {} {}\n", ir, ig, ib));
+            // println!("at row: {i} col: {j}");
+            let color = Color::new(i as f64 / (IMAGE_WIDTH - 1) as f64, j as f64 / (IMAGE_HEIGHT - 1) as f64, 0.25);
+            ppm_image.push_str(&color.write_color());
         }
     }
 
-    print!("{}", ppm_image);
+    write_ppm("image.ppm", ppm_image).unwrap();
 }
+
+use std::{fs::File, io::Write};
+fn write_ppm(file: &str, image: String) -> std::io::Result<()>{
+    let mut file = File::create(file)?;
+    file.write_all(image.as_bytes())?;
+    Ok(())
+}   
