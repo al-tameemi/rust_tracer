@@ -7,6 +7,28 @@ pub struct Color {
     b: f64,
 }
 
+impl Color {
+    pub fn new(r: f64, g: f64, b: f64) -> Color {
+        Color {
+            r,
+            g,
+            b
+        }
+    }
+
+    pub fn new_white() -> Color {
+        Color {
+            r: 1.0,
+            g: 1.0,
+            b: 1.0
+        }
+    }
+
+    pub fn write_color(&self) -> String {
+        format!("{} {} {}\n", (255.999 * self.r) as i32, (255.999 * self.g) as i32, (255.999 * self.b) as i32)
+    }
+}
+
 impl ops::Add<Color> for Color {
     type Output = Color;
 
