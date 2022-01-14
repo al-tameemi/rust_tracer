@@ -1,4 +1,5 @@
 use std::ops;
+use super::ray::Ray;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
@@ -73,6 +74,18 @@ impl ops::Mul<f64> for Color {
             r: self.r * rhs,
             g: self.g * rhs,
             b: self.b * rhs,
+        }
+    }
+}
+
+impl ops::Mul<Color> for f64 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Color {
+        Color {
+            r: rhs.r * self,
+            g: rhs.g * self,
+            b: rhs.b * self,
         }
     }
 }

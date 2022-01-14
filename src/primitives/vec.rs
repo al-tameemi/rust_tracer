@@ -1,7 +1,7 @@
 use std::ops;
 use num::{ Num, NumCast };
 
-pub trait PointObject {
+pub trait Vec3 {
     fn new(x: f64, y: f64, z: f64) -> Self;
     fn new_empty() -> Self;
     fn x(&self) -> f64;
@@ -10,23 +10,23 @@ pub trait PointObject {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Point {
+pub struct Vec {
     x: f64,
     y: f64,
     z: f64,
 }
 
-impl PointObject for Point {
-    fn new(x: f64, y: f64, z: f64) -> Point {
-        Point {
+impl Vec3 for Vec {
+    fn new(x: f64, y: f64, z: f64) -> Vec {
+        Vec {
             x,
             y,
             z
         }
     }
 
-    fn new_empty() -> Point {
-        Point {
+    fn new_empty() -> Vec {
+        Vec {
             x: 0.0,
             y: 0.0,
             z: 0.0
@@ -46,7 +46,7 @@ impl PointObject for Point {
     }
 }
 
-impl Point {
+impl Vec {
 
     pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
@@ -56,31 +56,31 @@ impl Point {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
-    pub fn dot(&self, point: Point) -> f64 {
+    pub fn dot(&self, point: Vec) -> f64 {
         self.x * point.x +
         self.y * point.y +
         self.z * point.z
     }
 
-    pub fn cross(&self, point: Point) -> Point {
-        Point { 
+    pub fn cross(&self, point: Vec) -> Vec {
+        Vec { 
             x: self.y * point.z - self.z * point.x,
             y: self.z * point.x - self.x * point.z,
             z: self.x * point.y - self.y * point.x 
         }
     }
 
-    pub fn unit_vector(&self) -> Point {
+    pub fn unit_vector(&self) -> Vec {
         self.clone() / self.length()
     }
 }
 
 /// Adds a point or a point offset to another point.
-impl<T> ops::Add<T> for Point where T: PointObject {
-    type Output = Point;
+impl<T> ops::Add<T> for Vec where T: Vec3 {
+    type Output = Vec;
 
-    fn add(self, rhs: T) -> Point {
-        Point {
+    fn add(self, rhs: T) -> Vec {
+        Vec {
             x: self.x + rhs.x(),
             y: self.y + rhs.y(),
             z: self.z + rhs.z(),
@@ -89,11 +89,11 @@ impl<T> ops::Add<T> for Point where T: PointObject {
 } 
 
 /// Subtracts a point or a point offset to another point.
-impl<T> ops::Sub<T> for Point where T: PointObject {
-    type Output = Point;
+impl<T> ops::Sub<T> for Vec where T: Vec3 {
+    type Output = Vec;
 
-    fn sub(self, rhs: T) -> Point {
-        Point {
+    fn sub(self, rhs: T) -> Vec {
+        Vec {
             x: self.x - rhs.x(),
             y: self.y - rhs.y(),
             z: self.z - rhs.z(),
@@ -103,12 +103,12 @@ impl<T> ops::Sub<T> for Point where T: PointObject {
 
 /* Start Multiplication */
 /// Multiply a point by a generic number type
-impl<T> ops::Mul<T> for Point where T: Num + NumCast {
-    type Output = Point;
+impl<T> ops::Mul<T> for Vec where T: Num + NumCast {
+    type Output = Vec;
 
-    fn mul(self, rhs: T) -> Point {
+    fn mul(self, rhs: T) -> Vec {
         let rhs = T::to_f64(&rhs).unwrap();
-        Point {
+        Vec {
             x: self.x * rhs,
             y: self.y * rhs,
             z: self.z * rhs,
@@ -116,12 +116,25 @@ impl<T> ops::Mul<T> for Point where T: Num + NumCast {
     }
 }
 
-/// Multiply x, y, and z of one point with the x, y, and z of another point.
-impl ops::Mul<Point> for Point {
-    type Output = Point;
+/// Multiply a float by a vec
+impl ops::Mul<Vec> for f64 {
+    type Output = Vec;
 
-    fn mul(self, rhs: Point) -> Point {
-        Point {
+    fn mul(self, rhs: Vec) -> Vec {
+        Vec { 
+            x: rhs.x * self, 
+            y: rhs.y * self, 
+            z: rhs.z * self 
+        }
+    }
+}
+
+/// Multiply x, y, and z of one point with the x, y, and z of another point.
+impl ops::Mul<Vec> for Vec {
+    type Output = Vec;
+
+    fn mul(self, rhs: Vec) -> Vec {
+        Vec {
             x: self.x * rhs.x,
             y: self.y * rhs.y,
             z: self.z * rhs.z
@@ -130,11 +143,11 @@ impl ops::Mul<Point> for Point {
 }
 
 /// Multiply x, y, and z of a point with the x, y, and z of an offset.
-impl ops::Mul<PointOffset> for Point {
-    type Output = Point;
+impl ops::Mul<PointOffset> for Vec {
+    type Output = Vec;
 
-    fn mul(self, rhs: PointOffset) -> Point {
-        Point {
+    fn mul(self, rhs: PointOffset) -> Vec {
+        Vec {
             x: self.x * rhs.x,
             y: self.y * rhs.y,
             z: self.z * rhs.z
@@ -143,24 +156,24 @@ impl ops::Mul<PointOffset> for Point {
 }
 /* End Multiplication */
 
-impl<T> ops::Div<T> for Point where T: Num + NumCast {
-    type Output = Point;
+impl<T> ops::Div<T> for Vec where T: Num + NumCast {
+    type Output = Vec;
 
-    fn div(self, rhs: T) -> Point {
+    fn div(self, rhs: T) -> Vec {
         self * (1.0 / T::to_f64(&rhs).unwrap())
     }
 }
 
 
-impl ops::Neg for Point {
-    type Output = Point;
+impl ops::Neg for Vec {
+    type Output = Vec;
 
-    fn neg(self) -> Point {
+    fn neg(self) -> Vec {
         self * -1.0
     }
 }
 
-impl ops::Index<usize> for Point {
+impl ops::Index<usize> for Vec {
     type Output = f64;
 
     fn index<'a>(&'a self, index: usize) -> &'a f64 {
@@ -173,7 +186,7 @@ impl ops::Index<usize> for Point {
     }
 }
 
-impl ops::IndexMut<usize> for Point {
+impl ops::IndexMut<usize> for Vec {
     fn index_mut<'a>(&'a mut self, index: usize) -> &'a mut f64 {
         match index {
             0 => {&mut self.x},
@@ -192,7 +205,7 @@ pub struct PointOffset {
     z: f64,
 }
 
-impl PointObject for PointOffset {
+impl Vec3 for PointOffset {
     fn new(x: f64, y: f64, z: f64) -> PointOffset {
         PointOffset {
             x,
@@ -228,15 +241,15 @@ mod tests {
 
     #[test]
     fn test_point_addition_and_subtraction() {
-        let point = Point::new(1.1, 1.2, 1.3);
-        let point2 = Point::new(1.0, 2.0, 3.0);
+        let point = Vec::new(1.1, 1.2, 1.3);
+        let point2 = Vec::new(1.0, 2.0, 3.0);
         let point = point + point2;
 
         assert!(point.x - 2.1 < 0.0000001);
         assert!(point.y - 3.2 < 0.0000001);
         assert!(point.z - 4.3 < 0.0000001);
 
-        let point = Point::new(1.1, 1.2, 1.3);
+        let point = Vec::new(1.1, 1.2, 1.3);
         let offset = PointOffset::new(0.1, 0.2, 0.3);
         let point = point + offset;
         
@@ -244,15 +257,15 @@ mod tests {
         assert!(point.y - 1.4 < 0.0000001);
         assert!(point.z - 1.6 < 0.0000001);
 
-        let point = Point::new(1.1, 1.2, 1.3);
-        let point2 = Point::new(1.0, 2.0, 3.0);
+        let point = Vec::new(1.1, 1.2, 1.3);
+        let point2 = Vec::new(1.0, 2.0, 3.0);
         let point = point - point2;
 
         assert!(point.x - 0.1 < 0.0000001);
         assert!(point.y + 0.8 < 0.0000001);
         assert!(point.z + 1.7 < 0.0000001);
 
-        let point = Point::new(1.1, 1.2, 1.3);
+        let point = Vec::new(1.1, 1.2, 1.3);
         let offset = PointOffset::new(0.1, 0.2, 0.3);
         let point = point - offset;
         
@@ -263,7 +276,7 @@ mod tests {
 
     #[test]
     fn test_point_scalar_multiplication_division() {
-        let point = Point::new(2.0, 3.0, 4.0);
+        let point = Vec::new(2.0, 3.0, 4.0);
         let factor = 2;
 
         let point_new = point * factor;
@@ -288,7 +301,7 @@ mod tests {
     #[test]
     #[allow(unused)]
     fn test_point_index() {
-        let point = Point::new(2.0, 3.0, 4.0);
+        let point = Vec::new(2.0, 3.0, 4.0);
         let x = point[0];
         let y = point[1];
         let z = point[2];
@@ -298,7 +311,7 @@ mod tests {
         assert!(point.z - z < 0.0000001);
 
 
-        let point = Point::new(2.0, 3.0, 4.0);
+        let point = Vec::new(2.0, 3.0, 4.0);
         let mut x = point[0];
         let mut y = point[1];
         let mut z = point[2];
