@@ -1,5 +1,6 @@
 use crate::primitives::vec::Vec;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
     pub origin: Vec,
     pub direction: Vec,
