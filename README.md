@@ -11,5 +11,5 @@ A CPU ray tracer written in rust.
 
 ## Latest Render
 <p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/image.ppm?raw=true" alt="The latest render according to the current specs."/>
+    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/image.png?raw=true" alt="The latest render according to the current specs."/>
 </p>
