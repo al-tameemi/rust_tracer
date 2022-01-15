@@ -1,5 +1,4 @@
 use std::ops;
-use super::ray::Ray;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
@@ -27,6 +26,10 @@ impl Color {
 
     pub fn write_color(&self) -> String {
         format!("{} {} {}\n", (255.999 * self.r) as i32, (255.999 * self.g) as i32, (255.999 * self.b) as i32)
+    }
+
+    pub fn pixels(&self) -> [u8; 3] {
+        [(255.999 * self.r) as u8, (255.999 * self.g) as u8, (255.999 * self.b) as u8]
     }
 }
 
