@@ -1,5 +1,3 @@
-use crate::primitives::vec;
-
 use super::image::Image;
 use crate::primitives::vec::{Vec, Vec3};
 
