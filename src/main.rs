@@ -3,7 +3,6 @@ mod objects;
 
 use primitives::{color::Color, vec::{Vec, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
-
 fn main() {
 
     let image = Image::new();
@@ -32,7 +31,20 @@ fn write_ppm(file: &str, image: String) -> std::io::Result<()>{
 }
 
 fn ray_color(ray: Ray) -> Color {
+    if hits_sphere(ray, Vec::new(0.0, 0.0, -1.0), 0.5) {
+        return Color::new(1.0, 0.0, 0.0);
+    }
+
     let unit_direction = ray.direction.unit_vector();
     let t = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
+}
+
+fn hits_sphere(ray: Ray, center: Vec, radius: f64) -> bool {
+    let oc = ray.origin - center;
+    let a = ray.direction.dot(ray.direction);
+    let b = 2.0 * oc.dot(ray.direction);
+    let c = oc.dot(oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant > 0.0
 }
