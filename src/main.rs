@@ -3,31 +3,26 @@ mod objects;
 
 use primitives::{color::Color, vec::{Vec, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
+use image::{RgbImage, Rgb};
+
 fn main() {
 
-    let image = Image::new();
+    let image = Image::new_with_height(16.0 / 9.0, 1440);
     let camera = Camera::from_image(&image);
 
-    let mut ppm_image = format!("P3\n{} {}\n255\n", image.width,  image.height);
-    
+    let mut rgb_image = RgbImage::new(image.width as u32, image.height as u32);
+
     for j in (0..image.height).rev() {
         for i in 0..image.width {
             let u = i as f64 / (image.width - 1) as f64;
             let v = j as f64 / (image.height - 1) as f64;
             let ray = Ray::new(camera.origin, camera.lower_left_corner + u * camera.horizontal + v * camera.vertical - camera.origin);
             let color = ray_color(ray);
-            ppm_image.push_str(&color.write_color());
+            rgb_image.put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels()));
         }
     }
 
-    write_ppm("image.ppm", ppm_image).unwrap();
-}
-
-use std::{fs::File, io::Write};
-fn write_ppm(file: &str, image: String) -> std::io::Result<()>{
-    let mut file = File::create(file)?;
-    file.write_all(image.as_bytes())?;
-    Ok(())
+    rgb_image.save("image.png").unwrap();
 }
 
 fn ray_color(ray: Ray) -> Color {
@@ -36,7 +31,7 @@ fn ray_color(ray: Ray) -> Color {
     }
 
     let unit_direction = ray.direction.unit_vector();
-    let t = 0.5 * (unit_direction.y() + 1.0);
+    let t = 0.5 * (unit_direction.y() + 1.0) + 0.5 * (unit_direction.x() + 1.0);
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
