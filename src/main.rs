@@ -1,9 +1,11 @@
 mod primitives;
 mod objects;
+mod shapes;
 
 use primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
 use image::{RgbImage, Rgb};
+use shapes::hittable::{Hittable, HitRecord};
 
 fn main() {
 
@@ -48,4 +50,20 @@ fn hits_sphere(ray: Ray, center: Vector, radius: f64) -> f64 {
     } else {
         return (-half_b - discriminant.sqrt()) / (a);
     }
+}
+
+fn hit(objects: &Vec<Box<dyn Hittable>>,ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    let mut temp_record = HitRecord::new();
+    let mut hit_anything = false;
+    let mut closest = t_max;
+
+    for object in objects {
+        if object.hit(*ray, t_min, closest, &mut temp_record) {
+            hit_anything = true;
+            closest = temp_record.t.unwrap();
+            *hit_record = temp_record;
+        }
+    }
+
+    hit_anything
 }
