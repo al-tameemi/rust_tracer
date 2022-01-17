@@ -25,19 +25,19 @@ fn main() {
     let rgb_image = single_threaded(&image, &camera, &world);
     let duration_1 = start.elapsed();
 
-    rgb_image.save("image_aa.png").unwrap();
-    
+    rgb_image.save("image.png").unwrap();
+
     println!("single thread completed");
 
     let image = Image::new_with_height(16.0 / 9.0, 1440);
     let camera = Camera::from_image(&image);
-    
+
     let start_2 = Instant::now();
     let rgb_image_2 = multi_threaded(&image, &camera, &world);
     let duration_2 = start_2.elapsed();
 
     rgb_image_2.lock().unwrap().save("image.png").unwrap();
-    
+
 
     println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
 }
@@ -47,7 +47,7 @@ fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable 
 
     for j in (0..image.height).rev() {
         for i in 0..image.width {
-            let color = get_pixel_color(i, j, image, camera, world); 
+            let color = get_pixel_color(i, j, image, camera, world);
             rgb_image.put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels(SAMPLES_PER_PIXEL)));
         }
     }
@@ -57,7 +57,7 @@ fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable 
 
 fn multi_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> Mutex<ImageBuffer<Rgb<u8>, Vec<u8>>> {
     let rgb_image = Mutex::new(RgbImage::new(image.width as u32, image.height as u32));
-    let world = Mutex::new(world);
+    // let world = Mutex::new(world);
     let _ = (0..image.height)
         .into_par_iter()
         .rev()
@@ -65,11 +65,11 @@ fn multi_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable +
             let _ = (0..image.width)
                 .into_par_iter()
                 .for_each(|i| {
-                    let color = get_pixel_color(i, j, image, camera, &world.lock().unwrap()); 
+                    let color = get_pixel_color(i, j, image, camera, world);
                     rgb_image.lock().unwrap().put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels(SAMPLES_PER_PIXEL)));
                 });
         });
-    
+
     rgb_image
 }
 
