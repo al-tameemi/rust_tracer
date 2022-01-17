@@ -1,10 +1,18 @@
 use std::ops;
 
+use super::vector::{Vector, Vec3};
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
     r: f64,
     g: f64,
     b: f64,
+}
+
+fn clamp(x: f64, min: f64, max: f64) -> f64 {
+    if x < min {return min;}
+    if x > max {return max;}
+    x
 }
 
 impl Color {
@@ -25,11 +33,15 @@ impl Color {
     }
 
     pub fn write_color(&self) -> String {
-        format!("{} {} {}\n", (255.999 * self.r) as i32, (255.999 * self.g) as i32, (255.999 * self.b) as i32)
+        format!("{} {} {}\n", (256.0 * clamp(self.r, 0.0, 0.999)) as u8, (256.0 * clamp(self.g, 0.0, 0.999)) as u8, (256.0 * clamp(self.b, 0.0, 0.999)) as u8)
     }
 
-    pub fn pixels(&self) -> [u8; 3] {
-        [(255.999 * self.r) as u8, (255.999 * self.g) as u8, (255.999 * self.b) as u8]
+    pub fn pixels(&self, samples_per_pixel: i32) -> [u8; 3] {
+        let r = self.r / samples_per_pixel as f64;
+        let g = self.g / samples_per_pixel as f64;
+        let b = self.b / samples_per_pixel as f64;
+
+        [(256.0 * clamp(r, 0.0, 0.999)) as u8, (256.0 * clamp(g, 0.0, 0.999)) as u8, (256.0 * clamp(b, 0.0, 0.999)) as u8]
     }
 }
 
@@ -41,6 +53,18 @@ impl ops::Add<Color> for Color {
             r: self.r + rhs.r,
             g: self.g + rhs.g,
             b: self.b + rhs.b,
+        }
+    }
+}
+
+impl ops::Add<Vector> for Color {
+    type Output = Color;
+
+    fn add(self, rhs: Vector) -> Color {
+        Color {
+            r: self.r + rhs.x(),
+            g: self.g + rhs.y(),
+            b: self.b + rhs.z(),
         }
     }
 }

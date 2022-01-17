@@ -6,26 +6,34 @@ use primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
 use image::{RgbImage, Rgb, ImageBuffer};
 use rayon::prelude::*;
-use shapes::hittable::{Hittable, HitRecord};
+use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere};
 use std::{f64::{consts::PI, INFINITY}, sync::{Arc, Mutex}, time::{Instant}};
+use rand::prelude::*;
+
+const SAMPLES_PER_PIXEL: i32 = 30;
 
 fn main() {
 
-    let start = Instant::now();
     let image = Image::new_with_height(16.0 / 9.0, 1440);
     let camera = Camera::from_image(&image);
+    let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
+    world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -1.0), 0.5)));
+    world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -1.0), 100.0)));
 
-    let rgb_image = single_threaded(&image, &camera);
+
+    let start = Instant::now();
+    let rgb_image = single_threaded(&image, &camera, &world);
     let duration_1 = start.elapsed();
 
-    rgb_image.save("image.png").unwrap();
+    rgb_image.save("image_aa.png").unwrap();
     
+    println!("single thread completed");
 
-    let start_2 = Instant::now();
     let image = Image::new_with_height(16.0 / 9.0, 1440);
     let camera = Camera::from_image(&image);
     
-    let rgb_image_2 = multi_threaded(&image, &camera);
+    let start_2 = Instant::now();
+    let rgb_image_2 = multi_threaded(&image, &camera, &world);
     let duration_2 = start_2.elapsed();
 
     rgb_image_2.lock().unwrap().save("image.png").unwrap();
@@ -34,22 +42,22 @@ fn main() {
     println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
 }
 
-fn single_threaded(image: &Image, camera: &Camera) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
     let mut rgb_image = RgbImage::new(image.width as u32, image.height as u32);
 
     for j in (0..image.height).rev() {
         for i in 0..image.width {
-            let color = get_pixel_color(i, j, image, camera); 
-            rgb_image.put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels()));
+            let color = get_pixel_color(i, j, image, camera, world); 
+            rgb_image.put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels(SAMPLES_PER_PIXEL)));
         }
     }
 
     rgb_image
 }
 
-fn multi_threaded(image: &Image, camera: &Camera) -> Mutex<ImageBuffer<Rgb<u8>, Vec<u8>>> {
+fn multi_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> Mutex<ImageBuffer<Rgb<u8>, Vec<u8>>> {
     let rgb_image = Mutex::new(RgbImage::new(image.width as u32, image.height as u32));
-
+    let world = Mutex::new(world);
     let _ = (0..image.height)
         .into_par_iter()
         .rev()
@@ -57,28 +65,29 @@ fn multi_threaded(image: &Image, camera: &Camera) -> Mutex<ImageBuffer<Rgb<u8>, 
             let _ = (0..image.width)
                 .into_par_iter()
                 .for_each(|i| {
-                    let color = get_pixel_color(i, j, image, camera); 
-                    rgb_image.lock().unwrap().put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels()));
+                    let color = get_pixel_color(i, j, image, camera, &world.lock().unwrap()); 
+                    rgb_image.lock().unwrap().put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels(SAMPLES_PER_PIXEL)));
                 });
         });
     
     rgb_image
 }
 
-fn get_pixel_color(i: i32, j: i32, image: &Image, camera: &Camera) -> Color {
-    let u = i as f64 / (image.width - 1) as f64;
-    let v = j as f64 / (image.height - 1) as f64;
-    let ray = Ray::new(camera.origin, camera.lower_left_corner + u * camera.horizontal + v * camera.vertical - camera.origin);
-    let color = ray_color(ray);
-
+fn get_pixel_color(i: i32, j: i32, image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> Color {
+    let mut color = Color::new(0.0, 0.0, 0.0);
+    for _ in 0.. SAMPLES_PER_PIXEL {
+        let u = (i as f64 + rand::thread_rng().gen::<f64>()) / (image.width - 1) as f64;
+        let v = (j as f64 + rand::thread_rng().gen::<f64>()) / (image.height - 1) as f64;
+        let ray = camera.get_ray(u, v);
+        color = color + ray_color(&ray, world);
+    }
     color
 }
 
-fn ray_color(ray: Ray) -> Color {
-    let t = hits_sphere(ray, Vector::new(0.0, 0.0, -1.0), 0.5);
-    if t > 0.0 {
-        let n = (ray.at(t) - Vector::new(0.0, 0.0, -1.0)).unit_vector();
-        return 0.5 * Color::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
+fn ray_color(ray: &Ray, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> Color {
+    let mut rec = HitRecord::new();
+    if hit(world, ray, 0.0, INFINITY, &mut rec) {
+        return 0.5 * (Color::new(1.0, 1.0, 1.0) + rec.normal.unwrap());
     }
 
     let unit_direction = ray.direction.unit_vector();
@@ -86,7 +95,7 @@ fn ray_color(ray: Ray) -> Color {
     return (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0);
 }
 
-fn hits_sphere(ray: Ray, center: Vector, radius: f64) -> f64 {
+fn hits_sphere(ray: &Ray, center: Vector, radius: f64) -> f64 {
     let oc = ray.origin - center;
     let a = ray.direction.length_squared();
     let half_b = oc.dot(ray.direction);
@@ -99,13 +108,13 @@ fn hits_sphere(ray: Ray, center: Vector, radius: f64) -> f64 {
     }
 }
 
-fn hit(objects: &Vec<Box<dyn Hittable>>,ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+fn hit(objects: &Vec<Box<dyn Hittable + Send + Sync>>,ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
     let mut temp_record = HitRecord::new();
     let mut hit_anything = false;
     let mut closest = t_max;
 
     for object in objects {
-        if object.hit(*ray, t_min, closest, &mut temp_record) {
+        if object.hit(ray, t_min, closest, &mut temp_record) {
             hit_anything = true;
             closest = temp_record.t.unwrap();
             *hit_record = temp_record;
