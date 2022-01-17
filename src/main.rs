@@ -4,27 +4,74 @@ mod shapes;
 
 use primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
-use image::{RgbImage, Rgb};
+use image::{RgbImage, Rgb, ImageBuffer};
+use rayon::prelude::*;
 use shapes::hittable::{Hittable, HitRecord};
+use std::{f64::{consts::PI, INFINITY}, sync::{Arc, Mutex}, time::{Instant}};
 
 fn main() {
 
+    let start = Instant::now();
     let image = Image::new_with_height(16.0 / 9.0, 1440);
     let camera = Camera::from_image(&image);
 
+    let rgb_image = single_threaded(&image, &camera);
+    let duration_1 = start.elapsed();
+
+    rgb_image.save("image.png").unwrap();
+    
+
+    let start_2 = Instant::now();
+    let image = Image::new_with_height(16.0 / 9.0, 1440);
+    let camera = Camera::from_image(&image);
+    
+    let rgb_image_2 = multi_threaded(&image, &camera);
+    let duration_2 = start_2.elapsed();
+
+    rgb_image_2.lock().unwrap().save("image.png").unwrap();
+    
+
+    println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
+}
+
+fn single_threaded(image: &Image, camera: &Camera) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
     let mut rgb_image = RgbImage::new(image.width as u32, image.height as u32);
 
     for j in (0..image.height).rev() {
         for i in 0..image.width {
-            let u = i as f64 / (image.width - 1) as f64;
-            let v = j as f64 / (image.height - 1) as f64;
-            let ray = Ray::new(camera.origin, camera.lower_left_corner + u * camera.horizontal + v * camera.vertical - camera.origin);
-            let color = ray_color(ray);
+            let color = get_pixel_color(i, j, image, camera); 
             rgb_image.put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels()));
         }
     }
 
-    rgb_image.save("image.png").unwrap();
+    rgb_image
+}
+
+fn multi_threaded(image: &Image, camera: &Camera) -> Mutex<ImageBuffer<Rgb<u8>, Vec<u8>>> {
+    let rgb_image = Mutex::new(RgbImage::new(image.width as u32, image.height as u32));
+
+    let _ = (0..image.height)
+        .into_par_iter()
+        .rev()
+        .for_each(|j| {
+            let _ = (0..image.width)
+                .into_par_iter()
+                .for_each(|i| {
+                    let color = get_pixel_color(i, j, image, camera); 
+                    rgb_image.lock().unwrap().put_pixel(i as u32, (image.height - 1 - j) as u32  , Rgb(color.pixels()));
+                });
+        });
+    
+    rgb_image
+}
+
+fn get_pixel_color(i: i32, j: i32, image: &Image, camera: &Camera) -> Color {
+    let u = i as f64 / (image.width - 1) as f64;
+    let v = j as f64 / (image.height - 1) as f64;
+    let ray = Ray::new(camera.origin, camera.lower_left_corner + u * camera.horizontal + v * camera.vertical - camera.origin);
+    let color = ray_color(ray);
+
+    color
 }
 
 fn ray_color(ray: Ray) -> Color {
@@ -66,4 +113,8 @@ fn hit(objects: &Vec<Box<dyn Hittable>>,ray: &Ray, t_min: f64, t_max: f64, hit_r
     }
 
     hit_anything
+}
+
+fn degree_to_radian(degrees: f64) -> f64 {
+    return degrees * PI / 180.0;
 }
