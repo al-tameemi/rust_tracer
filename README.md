@@ -18,5 +18,5 @@ A CPU ray tracer written in rust.
 ### CPU
 - Ryzen 7 5800x 8-Core, 16-Threads @ 3.8GHz Base, 4.7GHz Boost
 ### Result
-- Multi-threaded: 560ms
-- Single-threaded: 107ms 
+- Multi-threaded: 14S
+- Single-threaded: 10S
