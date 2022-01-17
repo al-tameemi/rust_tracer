@@ -13,3 +13,10 @@ A CPU ray tracer written in rust.
 <p align="center">
     <img src="https://github.com/al-tameemi/rust_tracer/blob/main/image.png?raw=true" alt="The latest render according to the current specs."/>
 </p>
+
+## Current Speed
+### CPU
+- Ryzen 7 5800x 8-Core, 16-Threads @ 3.8GHz Base, 4.7GHz Boost
+### Result
+- Multi-threaded: 560ms
+- Single-threaded: 107ms 
