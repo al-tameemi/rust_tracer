@@ -1,4 +1,7 @@
+# Rust Tracer
+A CPU ray tracer written in rust.
 
+## Contents
 * [Requirements](#requirements)
 * [Install](#install)
 * [Latest Render](#latest-render)
@@ -7,8 +10,6 @@
     * [How and Where Multithreading is used](#how-and-where-multithreading-is-used)
     * [Multithreading Optimization](#multithreading-optimization)
 
-# Rust Tracer
-A CPU ray tracer written in rust.
 
 ## Requirements
 * The [Rust toolchain](https://www.rust-lang.org/tools/install).
