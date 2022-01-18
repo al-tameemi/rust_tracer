@@ -15,8 +15,8 @@ A CPU ray tracer written in rust.
 </p>
 
 ## Current Speed
-### CPU
-- Ryzen 7 5800x 8-Core, 16-Threads @ 3.8GHz Base, 4.7GHz Boost
-### Result
-- Multi-threaded: 1.4S
-- Single-threaded: 6S
+
+| CPU                                                          | Single Threaded | Multi Threaded |
+| ------------------------------------------------------------ |:---------------:|:--------------:|
+| Ryzen 7 5800x 8-Core, 16-Threads @ 3.8GHz Base, 4.7GHz Boost | 9.5S            | 0.8S           |
+| Apple M1 8-Core, 8-Threads @ 3.2GHz                          | 6S              | 1.4S           |
