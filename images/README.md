@@ -22,3 +22,6 @@
 <p align="center">
     <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/8-Dielectric_sphere.png?raw=true" alt="A render of four spheres, one mat, two metallic, and one glass, reflecting and refracting light on with some fuzz."/>
 </p>
+<p align="center">
+    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/9-Random_World.png?raw=true" alt="A render of four spheres, one mat, two metallic, and one glass, reflecting and refracting light on with some fuzz."/>
+</p>
