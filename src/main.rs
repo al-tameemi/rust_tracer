@@ -19,7 +19,7 @@ fn main() {
     let camera = Camera::from_image(
         &image, 
         60.0, 
-        Vector::new(20.0, 2.2, 2.0), 
+        Vector::new(10.0, 2.2, 2.0), 
         Vector::new(0.0, 0.0, 0.0), 
         Vector::new(0.0, 1.0, 0.0)
     );
