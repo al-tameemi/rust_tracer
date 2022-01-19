@@ -28,7 +28,7 @@ A CPU ray tracer written in rust.
 
 | CPU                                                                    | Single Threaded | Multi Threaded |
 | ---------------------------------------------------------------------- |:---------------:|:--------------:|
-| Ryzen 7 5800x 8-Core, 16-Threads @ 3.8GHz Base, 4.7GHz Boost           | 23S             | 2.1S           |
+| Ryzen 7 5800x 8-Core, 16-Threads @ 3.8GHz Base, 4.7GHz Boost           | 28S             | 2.5S           |
 | Apple M1 8-Core, 8-Threads @ 3.2GHz  (Not tested with current version) | 6S (old)        | 1.4S (old)     |
 
 ## Notes
