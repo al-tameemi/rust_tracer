@@ -83,9 +83,9 @@ impl Vector {
 
     pub fn cross(&self, point: &Vector) -> Vector {
         Vector { 
-            x: self.y * point.z - self.z * point.x,
-            y: self.z * point.x - self.x * point.z,
-            z: self.x * point.y - self.y * point.x 
+            x: self[1] * point[2] - self[2] * point[1],
+            y: self[2] * point[0] - self[0] * point[2],
+            z: self[0] * point[1] - self[1] * point[0]
         }
     }
 
