@@ -22,7 +22,7 @@ fn main() {
     let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
     let ground = Material::new_metal(Color::new(0.8, 0.8, 0.5), 0.2);
-    let center_sphere = Material::new_dielectric(Color::new(1.0, 0.6, 0.6), 1.5);
+    let center_sphere = Material::new_dielectric(Color::new(0.8, 1.0, 0.8), 1.5);
     let material_left = Material::new_metal(Color::new(0.5, 0.5, 0.7), 0.2);
     let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 0.8);
     let material_back = Material::new_metal(Color::new(0.8, 0.3, 0.3), 0.0);

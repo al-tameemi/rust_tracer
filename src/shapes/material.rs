@@ -105,7 +105,7 @@ impl Material {
             r0 + (1.0 - r0) * (1.0 - cosine).pow(5)
         };
 
-        *attenuation = Color::new_white();
+        *attenuation = self.albedo;
         let refraction_ratio = match record.front_face.unwrap() {
             true => {1.0 / self.index_of_refraction},
             false => {self.index_of_refraction}

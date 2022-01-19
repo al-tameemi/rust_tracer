@@ -1,5 +1,3 @@
-use rayon::str::MatchIndices;
-
 use super::{hittable::{Hittable, HitRecord}, material::Material};
 use crate::primitives::{vector::Vector, ray::Ray};
 pub struct Sphere {
