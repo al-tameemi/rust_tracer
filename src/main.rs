@@ -23,9 +23,9 @@ fn main() {
 
     let ground = Material::new_lambertian(Color::new(0.8, 0.8, 0.0));
     let center_sphere = Material::new_dielectric(Color::new(1.0, 0.6, 0.6), 1.5);
-    let material_left = Material::new_metal(Color::new(0.5, 0.5, 0.7), 0.4);
+    let material_left = Material::new_metal(Color::new(0.5, 0.5, 0.7), 0.2);
     let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 0.8);
-    let material_back = Material::new_metal(Color::new(0.8, 0.3, 0.3), 0.2);
+    let material_back = Material::new_metal(Color::new(0.8, 0.3, 0.3), 0.0);
 
     world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -2.0), 100.0, ground)));
     world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -2.0), 0.5, center_sphere)));

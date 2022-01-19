@@ -19,3 +19,6 @@
 <p align="center">
     <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/7-Metalic_Material_with_Fuzz.png?raw=true" alt="A render of three spheres, one mat, two metallic, reflecting light on each other with some fuzz (light has random dispersion)."/>
 </p>
+<p align="center">
+    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/8-Dielectric_sphere.png?raw=true" alt="A render of four spheres, one mat, two metallic, and one glass, reflecting and refracting light on with some fuzz."/>
+</p>
