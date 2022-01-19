@@ -32,23 +32,23 @@ fn main() {
     world.push(Box::new(Sphere::new(Vector::new(1.0, 0.0, -2.0), 0.5, material_right)));
 
 
-    // let start = Instant::now();
-    // let rgb_image = single_threaded(&image, &camera, &world);
-    // let duration_1 = start.elapsed();
-
-    // rgb_image.save("image.png").unwrap();
-
-    // println!("single thread completed");
-
-
     let start_2 = Instant::now();
     let rgb_image_2 = multi_threaded(&image, &camera, &world);
     let duration_2 = start_2.elapsed();
 
     rgb_image_2.lock().unwrap().save("image.png").unwrap();
 
+    println!("Multi thread completed: {:?}", duration_2);
 
-    // println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
+    let start = Instant::now();
+    let rgb_image = single_threaded(&image, &camera, &world);
+    let duration_1 = start.elapsed();
+
+    rgb_image.save("image.png").unwrap();
+
+    println!("single thread completed");
+
+    println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
 }
 
 fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
