@@ -44,8 +44,6 @@ fn main() {
     let rgb_image = single_threaded(&image, &camera, &world);
     let duration_1 = start.elapsed();
 
-    rgb_image.save("image.png").unwrap();
-
     println!("single thread completed");
 
     println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
