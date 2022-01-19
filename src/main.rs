@@ -6,20 +6,30 @@ use primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
 use image::{RgbImage, Rgb, ImageBuffer};
 use rayon::prelude::*;
-use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere};
+use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere, material::{Material, MaterialType}};
 use std::{f64::{consts::PI, INFINITY}, sync::{Arc, Mutex}, time::{Instant}};
 use rand::prelude::*;
 
+use crate::shapes::material;
+
 const SAMPLES_PER_PIXEL: i32 = 30;
-const MAX_DEPTH: i32 = 20;
+const MAX_DEPTH: i32 = 2;
 
 fn main() {
 
     let image = Image::new_with_height(16.0 / 9.0, 1440);
     let camera = Camera::from_image(&image);
     let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
-    world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -1.0), 0.5)));
-    world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -1.0), 100.0)));
+
+    let ground = Material::new_lambertian(Color::new(0.8, 0.8, 0.0));
+    let center_sphere = Material::new_lambertian(Color::new(0.7, 0.3, 0.3));
+    let material_left = Material::new_metal(Color::new(0.8, 0.8, 0.8));
+    let material_right = Material::new_metal(Color::new(0.0, 0.5, 0.5));
+
+    world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -2.0), 100.0, ground)));
+    world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -2.0), 0.5, center_sphere)));
+    world.push(Box::new(Sphere::new(Vector::new(-1.0, 0.0, -2.0), 0.5, material_left)));
+    world.push(Box::new(Sphere::new(Vector::new(1.0, 0.0, -2.0), 0.5, material_right)));
 
 
     // let start = Instant::now();
@@ -28,10 +38,8 @@ fn main() {
 
     // rgb_image.save("image.png").unwrap();
 
-    println!("single thread completed");
+    // println!("single thread completed");
 
-    let image = Image::new_with_height(16.0 / 9.0, 1440);
-    let camera = Camera::from_image(&image);
 
     let start_2 = Instant::now();
     let rgb_image_2 = multi_threaded(&image, &camera, &world);
@@ -58,11 +66,12 @@ fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable 
 
 fn multi_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> Mutex<ImageBuffer<Rgb<u8>, Vec<u8>>> {
     let rgb_image = Mutex::new(RgbImage::new(image.width as u32, image.height as u32));
-    // let world = Mutex::new(world);
+   
     let _ = (0..image.height)
         .into_par_iter()
         .rev()
         .for_each(|j| {
+            // eprint!("line {j}\n");
             let _ = (0..image.width)
                 .into_par_iter()
                 .for_each(|i| {
@@ -88,12 +97,16 @@ fn get_pixel_color(i: i32, j: i32, image: &Image, camera: &Camera, world: &Vec<B
 fn ray_color(ray: &Ray, world: &Vec<Box<dyn Hittable + Send + Sync>>, depth: i32) -> Color {
     let mut rec = HitRecord::new();
     if depth <= 0 {
-        return Color::new_black();
+        return Color::new_white();
     }
 
     if hit(world, ray, 0.001, INFINITY, &mut rec) {
-        let target = rec.point.unwrap() + rec.normal.unwrap() + Vector::random_unit_vector();
-        return 0.5 * ray_color(&Ray::new(rec.point.unwrap(), target), world, depth - 1);
+        let mut scattered = Ray::new(Vector::new_empty(), Vector::new_empty());
+        let mut attenuation = Color::new_black();
+        if rec.material.unwrap().scatter(ray, &rec, &mut attenuation, &mut scattered) {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        }
+        return Color::new_black();
     }
 
     let unit_direction = ray.direction.unit_vector();
@@ -104,7 +117,7 @@ fn ray_color(ray: &Ray, world: &Vec<Box<dyn Hittable + Send + Sync>>, depth: i32
 fn hits_sphere(ray: &Ray, center: Vector, radius: f64) -> f64 {
     let oc = ray.origin - center;
     let a = ray.direction.length_squared();
-    let half_b = oc.dot(ray.direction);
+    let half_b = oc.dot(&ray.direction);
     let c = oc.length_squared() - radius * radius;
     let discriminant = half_b * half_b - a * c;
     if discriminant < 0.0 {

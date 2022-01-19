@@ -75,13 +75,13 @@ impl Vector {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
-    pub fn dot(&self, point: Vector) -> f64 {
+    pub fn dot(&self, point: &Vector) -> f64 {
         self.x * point.x +
         self.y * point.y +
         self.z * point.z
     }
 
-    pub fn cross(&self, point: Vector) -> Vector {
+    pub fn cross(&self, point: &Vector) -> Vector {
         Vector { 
             x: self.y * point.z - self.z * point.x,
             y: self.z * point.x - self.x * point.z,
@@ -101,6 +101,15 @@ impl Vector {
             }
             return p.unit_vector();
         }
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let zero = 1e-8;
+        self.x < zero && self.y < zero && self.z < zero 
+    }
+
+    pub fn reflect(&self, normal: &Vector) -> Vector {
+        *self - (2.0 * self.dot(normal) * *normal)
     }
 }
 
