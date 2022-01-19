@@ -1,27 +1,11 @@
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/1-Hit_Detection.png?raw=true" alt="A render of a sphere using hit detection to mark the space with the sphere as red."/>
-</p>
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/2-Surface_Shading.png?raw=true" alt="A render of a sphere using hit detection with the sphere being shaded based on orientation (top side is green, bottom left is blue, and bottom right is red, with the space in between blended)."/>
-</p>
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/3-AA_and_More_Spheres.png?raw=true" alt="A render of a sphere using hit detection with the sphere being shaded based on orientation along side a second, large and green, sphere below it. This image is the first to use Anti-Aliasing."/>
-</p>
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/4-Diffuse_Material.png?raw=true" alt="Dark render of all spheres being of mat material."/>
-</p>
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/5-Diffuse_With_Lambertian_Reflection_Gamma_Correction_and_Acne_Shadow_Fix.png.png?raw=true" alt="Render with mat material but with the gamma corrected and shadow acne mostly removed."/>
-</p>
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/6-Metalic_Material.png?raw=true" alt="A render of three spheres, one mat, two metallic, reflecting light on each other."/>
-</p>
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/7-Metalic_Material_with_Fuzz.png?raw=true" alt="A render of three spheres, one mat, two metallic, reflecting light on each other with some fuzz (light has random dispersion)."/>
-</p>
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/8-Dielectric_sphere.png?raw=true" alt="A render of four spheres, one mat, two metallic, and one glass, reflecting and refracting light on with some fuzz."/>
-</p>
-<p align="center">
-    <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/9-Random_World.png?raw=true" alt="A render of four spheres, one mat, two metallic, and one glass, reflecting and refracting light on with some fuzz."/>
-</p>
+| Stage Description | Image |
+| ----------------- | ----- |
+| Initial Implementation, the sphere is marked with red when ever a ray intersects it. | <p align="center"><img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/1-Hit_Detection.png?raw=true" alt="A render of a sphere using hit detection to mark the space with the sphere as red."/></p> |
+| Added object shading, the sphere is shaded based on its orientation, the top is green, bottom left is blue and bottom right is red, while the rest is blended in. | <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/2-Surface_Shading.png?raw=true" alt="A render of a sphere using hit detection with the sphere being shaded based on orientation (top side is green, bottom left is blue, and bottom right is red, with the space in between blended)."/> |
+| Implemented Anti-Aliasing to remove jagged edges and make the image more smooth, and Added a ground sphere | <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/3-AA_and_More_Spheres.png?raw=true" alt="A render of a sphere using hit detection with the sphere being shaded based on orientation along side a second, large and green, sphere below it. This image is the first to use Anti-Aliasing."/>
+| Initial implementation of diffuse material, as you can see, the material is too dark. The actual implementation is a lazy implementation that is not completely accurate. | <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/4-Diffuse_Material.png?raw=true" alt="Dark render of all spheres being of mat material."/> |
+| Refined implementation of diffuse materials, Lambertian reflectance is used which is more accurate than the previous method. Gamma correction is added to fix the dark places, as well as an algorithm to remove Shadow Acnes. |<img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/5-Diffuse_With_Lambertian_Reflection_Gamma_Correction_and_Acne_Shadow_Fix.png.png?raw=true" alt="Render with mat material but with the gamma corrected and shadow acne mostly removed."/>
+| First implementation of metallic material, the material is completely reflective and lacks any "fuzziness" to its reflection (looks like polished metal/mirror like) | <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/6-Metalic_Material.png?raw=true" alt="A render of three spheres, one mat, two metallic, reflecting light on each other."/> |
+| Added fuzzing to the metallic material. It should reflect light more randomly, giving it a less polished look. | <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/7-Metalic_Material_with_Fuzz.png?raw=true" alt="A render of three spheres, one mat, two metallic, reflecting light on each other with some fuzz (light has random dispersion)."/> |
+| Added dielectric material (glass, water, etc.) that would refract light instead of reflecting it unless a total internal reflection event has ocurred. | <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/8-Dielectric_sphere.png?raw=true" alt="A render of four spheres, one mat, two metallic, and one glass, reflecting and refracting light on with some fuzz."/> |
+| Added randomization to sphere spawning, there are many smaller spheres around the original 3 | <img src="https://github.com/al-tameemi/rust_tracer/blob/main/images/9-Random_World.png?raw=true" alt="A render of four spheres, one mat, two metallic, and one glass, reflecting and refracting light on with some fuzz."/> |
