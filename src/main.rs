@@ -6,11 +6,9 @@ use primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
 use image::{RgbImage, Rgb, ImageBuffer};
 use rayon::prelude::*;
-use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere, material::{Material, MaterialType}};
-use std::{f64::{consts::PI, INFINITY}, sync::{Arc, Mutex}, time::{Instant}};
+use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere, material::{Material}};
+use std::{f64::{consts::PI, INFINITY}, sync::{Mutex}, time::{Instant}};
 use rand::prelude::*;
-
-use crate::shapes::material;
 
 const SAMPLES_PER_PIXEL: i32 = 30;
 const MAX_DEPTH: i32 = 50;
@@ -18,7 +16,13 @@ const MAX_DEPTH: i32 = 50;
 fn main() {
 
     let image = Image::new_with_height(16.0 / 9.0, 1440);
-    let camera = Camera::from_image(&image, 70.0);
+    let camera = Camera::from_image(
+        &image, 
+        90.0, 
+        Vector::new(-2.0, 2.0, 1.0), 
+        Vector::new(0.0, 0.0, -1.0), 
+        Vector::new(0.0, 1.0, 0.0)
+    );
     let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
     let ground = Material::new_metal(Color::new(0.8, 0.8, 0.5), 0.2);
