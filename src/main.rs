@@ -18,7 +18,7 @@ const MAX_DEPTH: i32 = 50;
 fn main() {
 
     let image = Image::new_with_height(16.0 / 9.0, 1440);
-    let camera = Camera::from_image(&image);
+    let camera = Camera::from_image(&image, 70.0);
     let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
     let ground = Material::new_lambertian(Color::new(0.8, 0.8, 0.0));

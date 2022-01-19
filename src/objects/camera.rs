@@ -1,5 +1,5 @@
 use super::image::Image;
-use crate::primitives::{vector::{Vector, Vec3}, ray::Ray};
+use crate::{primitives::{vector::{Vector, Vec3}, ray::Ray}, degree_to_radian};
 
 pub struct Camera {
     pub origin: Vector,
@@ -9,8 +9,12 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn from_image(image: &Image) -> Camera {
-        let viewport_height = 2.0;
+    pub fn from_image(image: &Image, fov: f64) -> Camera {
+
+        let theta = degree_to_radian(fov);
+        let h = (theta / 2.0).tan();
+
+        let viewport_height = 2.0 * h;
         let viewport_width = image.aspect_ratio * viewport_height;
         let focal_length = 1.0;
 
