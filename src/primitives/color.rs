@@ -1,6 +1,7 @@
 use std::ops;
 
 use super::vector::{Vector, Vec3};
+use rand::Rng;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
@@ -32,14 +33,30 @@ impl Color {
         }
     }
 
+    pub fn new_black() -> Color {
+        Color {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0
+        }
+    }
+
+    fn random() -> Self {
+        Color {
+            r: rand::thread_rng().gen::<f64>(),
+            g: rand::thread_rng().gen::<f64>(),
+            b: rand::thread_rng().gen::<f64>()
+        }
+    }
+
     pub fn write_color(&self) -> String {
         format!("{} {} {}\n", (256.0 * clamp(self.r, 0.0, 0.999)) as u8, (256.0 * clamp(self.g, 0.0, 0.999)) as u8, (256.0 * clamp(self.b, 0.0, 0.999)) as u8)
     }
 
     pub fn pixels(&self, samples_per_pixel: i32) -> [u8; 3] {
-        let r = self.r / samples_per_pixel as f64;
-        let g = self.g / samples_per_pixel as f64;
-        let b = self.b / samples_per_pixel as f64;
+        let r = (self.r / samples_per_pixel as f64).sqrt();
+        let g = (self.g / samples_per_pixel as f64).sqrt();
+        let b = (self.b / samples_per_pixel as f64).sqrt();
 
         [(256.0 * clamp(r, 0.0, 0.999)) as u8, (256.0 * clamp(g, 0.0, 0.999)) as u8, (256.0 * clamp(b, 0.0, 0.999)) as u8]
     }

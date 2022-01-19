@@ -11,6 +11,7 @@ use std::{f64::{consts::PI, INFINITY}, sync::{Arc, Mutex}, time::{Instant}};
 use rand::prelude::*;
 
 const SAMPLES_PER_PIXEL: i32 = 30;
+const MAX_DEPTH: i32 = 20;
 
 fn main() {
 
@@ -21,11 +22,11 @@ fn main() {
     world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -1.0), 100.0)));
 
 
-    let start = Instant::now();
-    let rgb_image = single_threaded(&image, &camera, &world);
-    let duration_1 = start.elapsed();
+    // let start = Instant::now();
+    // let rgb_image = single_threaded(&image, &camera, &world);
+    // let duration_1 = start.elapsed();
 
-    rgb_image.save("image.png").unwrap();
+    // rgb_image.save("image.png").unwrap();
 
     println!("single thread completed");
 
@@ -39,7 +40,7 @@ fn main() {
     rgb_image_2.lock().unwrap().save("image.png").unwrap();
 
 
-    println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
+    // println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
 }
 
 fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
@@ -74,25 +75,30 @@ fn multi_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable +
 }
 
 fn get_pixel_color(i: i32, j: i32, image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> Color {
-    let mut color = Color::new(0.0, 0.0, 0.0);
+    let mut color = Color::new_black();
     for _ in 0.. SAMPLES_PER_PIXEL {
         let u = (i as f64 + rand::thread_rng().gen::<f64>()) / (image.width - 1) as f64;
         let v = (j as f64 + rand::thread_rng().gen::<f64>()) / (image.height - 1) as f64;
         let ray = camera.get_ray(u, v);
-        color = color + ray_color(&ray, world);
+        color = color + ray_color(&ray, world, MAX_DEPTH);
     }
     color
 }
 
-fn ray_color(ray: &Ray, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> Color {
+fn ray_color(ray: &Ray, world: &Vec<Box<dyn Hittable + Send + Sync>>, depth: i32) -> Color {
     let mut rec = HitRecord::new();
-    if hit(world, ray, 0.0, INFINITY, &mut rec) {
-        return 0.5 * (Color::new(1.0, 1.0, 1.0) + rec.normal.unwrap());
+    if depth <= 0 {
+        return Color::new_black();
+    }
+
+    if hit(world, ray, 0.001, INFINITY, &mut rec) {
+        let target = rec.point.unwrap() + rec.normal.unwrap() + Vector::random_unit_vector();
+        return 0.5 * ray_color(&Ray::new(rec.point.unwrap(), target), world, depth - 1);
     }
 
     let unit_direction = ray.direction.unit_vector();
     let t = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0);
+    return (1.0 - t) * Color::new_white() + t * Color::new(0.5, 0.7, 1.0);
 }
 
 fn hits_sphere(ray: &Ray, center: Vector, radius: f64) -> f64 {
@@ -126,4 +132,14 @@ fn hit(objects: &Vec<Box<dyn Hittable + Send + Sync>>,ray: &Ray, t_min: f64, t_m
 
 fn degree_to_radian(degrees: f64) -> f64 {
     return degrees * PI / 180.0;
+}
+
+fn random_in_unit_sphere() -> Vector {
+    loop {
+        let p = Vector::random_with_constraint(-1.0, 1.0);
+        if p.length_squared() >= 1.0 {
+            continue;
+        }
+        return p;
+    }
 }

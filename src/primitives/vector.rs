@@ -1,5 +1,6 @@
 use std::ops;
 use num::{ Num, NumCast };
+use rand::Rng;
 
 pub trait Vec3 {
     fn new(x: f64, y: f64, z: f64) -> Self;
@@ -7,6 +8,8 @@ pub trait Vec3 {
     fn x(&self) -> f64;
     fn y(&self) -> f64;
     fn z(&self) -> f64;
+    fn random() -> Self;
+    fn random_with_constraint(min: f64,  max: f64) -> Self;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -44,6 +47,22 @@ impl Vec3 for Vector {
     fn z(&self) -> f64 {
         self.z
     }
+
+    fn random() -> Self {
+        Vector {
+            x: rand::thread_rng().gen::<f64>(),
+            y: rand::thread_rng().gen::<f64>(),
+            z: rand::thread_rng().gen::<f64>()
+        }
+    }
+
+    fn random_with_constraint(min: f64, max: f64) -> Self {
+        Vector {
+            x: rand::thread_rng().gen_range(min..max),
+            y: rand::thread_rng().gen_range(min..max),
+            z: rand::thread_rng().gen_range(min..max)
+        }
+    }
 }
 
 impl Vector {
@@ -72,6 +91,16 @@ impl Vector {
 
     pub fn unit_vector(&self) -> Vector {
         self.clone() / self.length()
+    }
+
+    pub fn random_unit_vector() -> Vector {
+        loop {
+            let p = Vector::random_with_constraint(-1.0, 1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p.unit_vector();
+        }
     }
 }
 
@@ -232,6 +261,22 @@ impl Vec3 for PointOffset {
 
     fn z(&self) -> f64 {
         self.z
+    }
+
+    fn random() -> Self {
+        PointOffset {
+            x: rand::thread_rng().gen::<f64>(),
+            y: rand::thread_rng().gen::<f64>(),
+            z: rand::thread_rng().gen::<f64>()
+        }
+    }
+
+    fn random_with_constraint(min: f64, max: f64) -> Self {
+        PointOffset {
+            x: rand::thread_rng().gen_range(min..max),
+            y: rand::thread_rng().gen_range(min..max),
+            z: rand::thread_rng().gen_range(min..max)
+        }
     }
 }
 
