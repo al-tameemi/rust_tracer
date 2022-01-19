@@ -6,7 +6,7 @@ use primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
 use image::{RgbImage, Rgb, ImageBuffer};
 use rayon::prelude::*;
-use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere, material::{Material}};
+use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere, material::{Material, self}};
 use std::{f64::{consts::PI, INFINITY}, sync::{Mutex}, time::{Instant}};
 use rand::prelude::*;
 
@@ -15,15 +15,15 @@ const MAX_DEPTH: i32 = 50;
 
 fn main() {
 
-    let image = Image::new_with_height(16.0 / 9.0, 1440);
+    let image = Image::new_with_height(3.0 / 2.0, 1440);
     let camera = Camera::from_image(
         &image, 
-        90.0, 
-        Vector::new(-2.0, 2.0, 1.0), 
-        Vector::new(0.0, 0.0, -1.0), 
+        60.0, 
+        Vector::new(20.0, 2.2, 2.0), 
+        Vector::new(0.0, 0.0, 0.0), 
         Vector::new(0.0, 1.0, 0.0)
     );
-    let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
+    // let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
     let ground = Material::new_metal(Color::new(0.8, 0.8, 0.5), 0.2);
     let center_sphere = Material::new_dielectric(Color::new(0.8, 1.0, 0.8), 1.5);
@@ -31,11 +31,13 @@ fn main() {
     let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 0.8);
     let material_back = Material::new_metal(Color::new(0.8, 0.3, 0.3), 0.0);
 
-    world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -2.0), 100.0, ground)));
-    world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -2.0), 0.5, center_sphere)));
-    world.push(Box::new(Sphere::new(Vector::new(-1.2, 0.0, -2.0), 0.5, material_left)));
-    world.push(Box::new(Sphere::new(Vector::new(1.2, 0.0, -2.0), 0.5, material_right)));
-    world.push(Box::new(Sphere::new(Vector::new(1.2, 0.0, -4.0), 0.5, material_back)));
+    // world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -2.0), 100.0, ground)));
+    // world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -2.0), 0.2, center_sphere)));
+    // world.push(Box::new(Sphere::new(Vector::new(-1.2, 0.0, -2.0), 0.5, material_left)));
+    // world.push(Box::new(Sphere::new(Vector::new(1.2, 0.0, -2.0), 0.5, material_right)));
+    // world.push(Box::new(Sphere::new(Vector::new(1.2, 0.0, -4.0), 0.5, material_back)));
+
+    let world = random_world();
 
 
     let start_2 = Instant::now();
@@ -53,6 +55,49 @@ fn main() {
     // println!("single thread completed");
 
     // println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
+}
+
+fn random_world() -> Vec<Box<dyn Hittable + Send + Sync>> {
+    let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
+
+    let ground = Material::new_metal(Color::new(0.8, 0.8, 0.5), 0.2);
+    let center_sphere = Material::new_dielectric(Color::new(0.8, 1.0, 0.8), 1.5);
+    let material_left = Material::new_metal(Color::new(0.5, 0.5, 0.7), 0.2);
+    let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 0.8);
+
+    world.push(Box::new(Sphere::new(Vector::new(0.0, -1000.0, 0.0), 1000.0, ground)));
+    world.push(Box::new(Sphere::new(Vector::new(0.0, 1.0, 0.0), 1.0, center_sphere)));
+    world.push(Box::new(Sphere::new(Vector::new(-4.0, 1.0, 0.0), 1.0, material_left)));
+    world.push(Box::new(Sphere::new(Vector::new(4.0, 1.0, 0.0), 1.0, material_right)));
+
+    for i in -11..11 {
+        for j in -11..11 {
+            let mut rng = rand::thread_rng();
+            let mat_rng = rng.gen::<f64>();
+            let center = Vector::new(i as f64 + 0.9 * rng.gen::<f64>(), 0.2, j as f64 + 0.9 * rng.gen::<f64>());
+            if (center - Vector::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                let material = match mat_rng {
+                    r if r < 0.4 => {
+                        let albedo = Color::random() * Color::random();
+                        Material::new_lambertian(albedo)
+                    }
+                    r if r < 0.95 => {
+                        let albedo = Color::random_range(0.5,1.0);
+                        let fuzz = rng.gen_range(0.0..0.5);
+                        Material::new_metal(albedo, fuzz)
+                    }
+                    _ => {
+                        let albedo = Color::random_range(0.8,1.0);
+                        Material::new_dielectric(albedo, 1.5)
+                    }
+                };
+                world.push(Box::new(Sphere::new(center, 0.2, material)));
+
+            }
+        }
+    }
+
+    world
 }
 
 fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {

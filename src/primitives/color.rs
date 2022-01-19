@@ -1,4 +1,4 @@
-use std::ops;
+use std::ops::{self, Range};
 
 use super::vector::{Vector, Vec3};
 use rand::Rng;
@@ -41,11 +41,19 @@ impl Color {
         }
     }
 
-    fn random() -> Self {
+    pub fn random() -> Self {
         Color {
             r: rand::thread_rng().gen::<f64>(),
             g: rand::thread_rng().gen::<f64>(),
             b: rand::thread_rng().gen::<f64>()
+        }
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Self {
+        Color {
+            r: rand::thread_rng().gen_range(min..max),
+            g: rand::thread_rng().gen_range(min..max),
+            b: rand::thread_rng().gen_range(min..max)
         }
     }
 
