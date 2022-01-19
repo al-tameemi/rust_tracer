@@ -105,11 +105,18 @@ impl Vector {
 
     pub fn near_zero(&self) -> bool {
         let zero = 1e-8;
-        self.x < zero && self.y < zero && self.z < zero 
+        self.x.abs() < zero && self.y.abs() < zero && self.z.abs() < zero 
     }
 
     pub fn reflect(&self, normal: &Vector) -> Vector {
         *self - (2.0 * self.dot(normal) * *normal)
+    }
+
+    pub fn refract(&self, normal: &Vector, eta_over_eta_p: f64) -> Vector {
+        let cos_theta = -self.dot(normal).min(1.0);
+        let r_out_perpendicular = eta_over_eta_p * (*self + cos_theta * *normal);
+        let r_out_parallel = -((1.0 - r_out_perpendicular.length_squared()).sqrt()) * *normal;
+        r_out_parallel + r_out_perpendicular
     }
 }
 
