@@ -13,7 +13,7 @@ use rand::prelude::*;
 use crate::shapes::material;
 
 const SAMPLES_PER_PIXEL: i32 = 30;
-const MAX_DEPTH: i32 = 2;
+const MAX_DEPTH: i32 = 50;
 
 fn main() {
 
