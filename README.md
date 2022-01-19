@@ -26,10 +26,10 @@ A CPU ray tracer written in rust.
 
 ## Current Speed
 
-| CPU                                                          | Single Threaded | Multi Threaded |
-| ------------------------------------------------------------ |:---------------:|:--------------:|
-| Ryzen 7 5800x 8-Core, 16-Threads @ 3.8GHz Base, 4.7GHz Boost | 9.5S            | 0.8S           |
-| Apple M1 8-Core, 8-Threads @ 3.2GHz                          | 6S              | 1.4S           |
+| CPU                                                                    | Single Threaded | Multi Threaded |
+| ---------------------------------------------------------------------- |:---------------:|:--------------:|
+| Ryzen 7 5800x 8-Core, 16-Threads @ 3.8GHz Base, 4.7GHz Boost           | 23S             | 2.1S           |
+| Apple M1 8-Core, 8-Threads @ 3.2GHz  (Not tested with current version) | 6S (old)        | 1.4S (old)     |
 
 ## Notes
 ### How and Where Multithreading is Used
