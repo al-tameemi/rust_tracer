@@ -21,15 +21,15 @@ fn main() {
     let camera = Camera::from_image(&image);
     let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
-    let ground = Material::new_lambertian(Color::new(0.8, 0.8, 0.0));
+    let ground = Material::new_metal(Color::new(0.8, 0.8, 0.5), 0.2);
     let center_sphere = Material::new_lambertian(Color::new(0.7, 0.3, 0.3));
     let material_left = Material::new_metal(Color::new(0.5, 0.5, 0.7), 0.4);
-    let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 1.0);
+    let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 0.8);
 
     world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -2.0), 100.0, ground)));
     world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -2.0), 0.5, center_sphere)));
-    world.push(Box::new(Sphere::new(Vector::new(-1.0, 0.0, -2.0), 0.5, material_left)));
-    world.push(Box::new(Sphere::new(Vector::new(1.0, 0.0, -2.0), 0.5, material_right)));
+    world.push(Box::new(Sphere::new(Vector::new(-1.2, 0.0, -2.0), 0.5, material_left)));
+    world.push(Box::new(Sphere::new(Vector::new(1.2, 0.0, -2.0), 0.5, material_right)));
 
 
     let start_2 = Instant::now();
@@ -64,7 +64,7 @@ fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable 
 
 fn multi_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> Mutex<ImageBuffer<Rgb<u8>, Vec<u8>>> {
     let rgb_image = Mutex::new(RgbImage::new(image.width as u32, image.height as u32));
-   
+
     let _ = (0..image.height)
         .into_par_iter()
         .rev()
