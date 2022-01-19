@@ -25,11 +25,13 @@ fn main() {
     let center_sphere = Material::new_dielectric(Color::new(1.0, 0.6, 0.6), 1.5);
     let material_left = Material::new_metal(Color::new(0.5, 0.5, 0.7), 0.4);
     let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 0.8);
+    let material_back = Material::new_metal(Color::new(0.8, 0.3, 0.3), 0.2);
 
     world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -2.0), 100.0, ground)));
     world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -2.0), 0.5, center_sphere)));
     world.push(Box::new(Sphere::new(Vector::new(-1.2, 0.0, -2.0), 0.5, material_left)));
     world.push(Box::new(Sphere::new(Vector::new(1.2, 0.0, -2.0), 0.5, material_right)));
+    world.push(Box::new(Sphere::new(Vector::new(1.2, 0.0, -4.0), 0.5, material_back)));
 
 
     let start_2 = Instant::now();
@@ -40,13 +42,13 @@ fn main() {
 
     println!("Multi thread completed: {:?}", duration_2);
 
-    let start = Instant::now();
-    let rgb_image = single_threaded(&image, &camera, &world);
-    let duration_1 = start.elapsed();
+    // let start = Instant::now();
+    // let rgb_image = single_threaded(&image, &camera, &world);
+    // let duration_1 = start.elapsed();
 
-    println!("single thread completed");
+    // println!("single thread completed");
 
-    println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
+    // println!("Single-threaded: {:?}, Multi-threaded: {:?} ", duration_1, duration_2);
 }
 
 fn single_threaded(image: &Image, camera: &Camera, world: &Vec<Box<dyn Hittable + Send + Sync>>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
