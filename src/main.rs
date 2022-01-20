@@ -6,12 +6,12 @@ use primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use objects::{image::Image, camera::Camera};
 use image::{RgbImage, Rgb, ImageBuffer};
 use rayon::prelude::*;
-use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere, material::{Material, self}};
+use shapes::{hittable::{Hittable, HitRecord}, sphere::Sphere, material::{Material}};
 use std::{f64::{consts::PI, INFINITY}, sync::{Mutex}, time::{Instant}};
 use rand::prelude::*;
 
-const SAMPLES_PER_PIXEL: i32 = 30;
-const MAX_DEPTH: i32 = 50;
+const SAMPLES_PER_PIXEL: i32 = 100;
+const MAX_DEPTH: i32 = 100;
 
 fn main() {
 
@@ -19,17 +19,17 @@ fn main() {
     let camera = Camera::from_image(
         &image, 
         60.0, 
-        Vector::new(10.0, 2.2, 2.0), 
+        Vector::new(5.0, 2.0, 4.0), 
         Vector::new(0.0, 0.0, 0.0), 
         Vector::new(0.0, 1.0, 0.0)
     );
     // let mut world: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
-    let ground = Material::new_metal(Color::new(0.8, 0.8, 0.5), 0.2);
-    let center_sphere = Material::new_dielectric(Color::new(0.8, 1.0, 0.8), 1.5);
-    let material_left = Material::new_metal(Color::new(0.5, 0.5, 0.7), 0.2);
-    let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 0.8);
-    let material_back = Material::new_metal(Color::new(0.8, 0.3, 0.3), 0.0);
+    // let ground = Material::new_metal(Color::new(0.8, 0.8, 0.5), 0.2);
+    // let center_sphere = Material::new_dielectric(Color::new(0.8, 1.0, 0.8), 1.5);
+    // let material_left = Material::new_metal(Color::new(0.5, 0.5, 0.7), 0.2);
+    // let material_right = Material::new_metal(Color::new(0.8, 0.6, 0.2), 0.8);
+    // let material_back = Material::new_metal(Color::new(0.8, 0.3, 0.3), 0.0);
 
     // world.push(Box::new(Sphere::new(Vector::new(0.0, -100.5, -2.0), 100.0, ground)));
     // world.push(Box::new(Sphere::new(Vector::new(0.0, 0.0, -2.0), 0.2, center_sphere)));
@@ -77,11 +77,11 @@ fn random_world() -> Vec<Box<dyn Hittable + Send + Sync>> {
             let center = Vector::new(i as f64 + 0.9 * rng.gen::<f64>(), 0.2, j as f64 + 0.9 * rng.gen::<f64>());
             if (center - Vector::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let material = match mat_rng {
-                    r if r < 0.4 => {
+                    r if r < 0.2 => {
                         let albedo = Color::random() * Color::random();
                         Material::new_lambertian(albedo)
                     }
-                    r if r < 0.95 => {
+                    r if r < 0.8 => {
                         let albedo = Color::random_range(0.5,1.0);
                         let fuzz = rng.gen_range(0.0..0.5);
                         Material::new_metal(albedo, fuzz)
