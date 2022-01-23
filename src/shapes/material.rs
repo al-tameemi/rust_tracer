@@ -2,7 +2,7 @@ use num::traits::Pow;
 
 use crate::{
     primitives::{color::Color, ray::Ray, vector::Vector}, 
-    shapes::hittable::HitRecord
+    shapes::hitrecord::HitRecord
 };
 
 use rand::Rng;
@@ -71,7 +71,7 @@ impl Material {
     }
 
     pub fn scatter_lambertian(
-        &self, ray_in: &Ray, record: &HitRecord, 
+        &self, _ray_in: &Ray, record: &HitRecord, 
         attenuation: &mut Color, scattered: &mut Ray
     ) -> bool{
         let mut scatter_direction = record.normal.unwrap() + Vector::random_unit_vector();

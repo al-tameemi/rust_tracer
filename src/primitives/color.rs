@@ -1,4 +1,4 @@
-use std::ops::{self, Range};
+use std::ops::{self};
 
 use super::vector::{Vector, Vec3};
 use rand::Rng;
@@ -39,6 +39,14 @@ impl Color {
             g: 0.0,
             b: 0.0
         }
+    }
+
+    pub fn add(&mut self, color: Color) -> Self{
+        self.r += color.r;
+        self.g += color.g;
+        self.b += color.b;
+
+        return *self;
     }
 
     pub fn random() -> Self {

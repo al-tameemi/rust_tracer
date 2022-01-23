@@ -5,18 +5,6 @@ pub struct Image {
 }
 
 impl Image {
-    pub fn new() -> Image {
-        let aspect_ratio = 16.0 / 9.0;
-        let width = 1280;
-        let height = (width as f64 / aspect_ratio) as i32;
-
-        Image {
-            aspect_ratio,
-            width,
-            height
-        }
-    }
-
     pub fn new_with_size(width:  i32, height: i32) -> Image {
         let aspect_ratio = width as f64 / height as f64;
         Image {

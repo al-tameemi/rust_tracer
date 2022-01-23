@@ -1,10 +1,5 @@
 use crate::primitives::{ray::Ray, vector::Vector};
-use std::rc::Rc;
 use super::material::Material;
-
-pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
-}
 
 #[derive(Clone, Copy, Debug)]
 pub struct HitRecord {

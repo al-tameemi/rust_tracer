@@ -1,5 +1,5 @@
 use super::image::Image;
-use crate::{primitives::{vector::{Vector, Vec3}, ray::Ray}, degree_to_radian};
+use crate::{primitives::{vector::Vector, ray::Ray}, degree_to_radian};
 
 pub struct Camera {
     pub origin: Vector,
