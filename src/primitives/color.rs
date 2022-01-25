@@ -69,7 +69,7 @@ impl Color {
         format!("{} {} {}\n", (256.0 * clamp(self.r, 0.0, 0.999)) as u8, (256.0 * clamp(self.g, 0.0, 0.999)) as u8, (256.0 * clamp(self.b, 0.0, 0.999)) as u8)
     }
 
-    pub fn pixels(&self, samples_per_pixel: i32) -> [u8; 3] {
+    pub fn pixels(&self, samples_per_pixel: u32) -> [u8; 3] {
         let r = (self.r / samples_per_pixel as f64).sqrt();
         let g = (self.g / samples_per_pixel as f64).sqrt();
         let b = (self.b / samples_per_pixel as f64).sqrt();
