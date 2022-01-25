@@ -1,4 +1,4 @@
-use std::{sync::Mutex, f64::INFINITY, fmt};
+use std::{sync::Mutex, f64::INFINITY, fmt, time::Instant};
 
 use crate::primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use crate::shapes::{sphere::Sphere, material::Material, hitrecord::HitRecord};
@@ -120,7 +120,6 @@ impl Image {
 
                         let look_at = Vector::new(self.look_at.x() - x_relative, self.look_at.y() + y_relative, self.look_at.z());
                         let look_from = Vector::new(self.look_from.x() - x_relative, self.look_from.y() + y_relative, self.look_from.z());
-                        println!("panning");
                         self.update_position_and_look(look_from, look_at);
                         self.full_rendered = false;
                     },
@@ -196,11 +195,13 @@ impl Image {
     }
 
     pub fn clear(&mut self, frame: &mut [u8]) {
+        let start = Instant::now();
         if !self.full_rendered {
             let _ = frame.into_par_iter().for_each(|pixel| {
                 *pixel = 0;
             });
         }
+        println!("to clear: {:?}", start.elapsed());
     }
 
     pub fn draw(&mut self, frame: &mut [u8]) {
@@ -215,7 +216,7 @@ impl Image {
                 samples = 1;
                 self.steps = 3;
             }
-    
+            let start = Instant::now();
             let _ = (0..self.width).into_par_iter().step_by(self.steps).for_each(|i| {
                 let _ = (0..self.height).into_par_iter().step_by(self.steps).for_each(|j| {
     
@@ -232,9 +233,8 @@ impl Image {
             if self.state == State::Static {
                 self.full_rendered = true;
             }
+            println!("{:?}", start.elapsed());
         }
-
-        println!("finished");
     }
 
     fn get_pixel_color(&self, i: u32, j: u32, samples: u32) -> Color {

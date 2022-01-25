@@ -19,8 +19,8 @@ use winit::{
     window::WindowBuilder, dpi::PhysicalPosition
 };
 
-const SAMPLES_PER_PIXEL: i32 = 4;
-const MAX_DEPTH: i32 = 20;
+const SAMPLES_PER_PIXEL: u32 = 50;
+const MAX_DEPTH: u32 = 20;
 
 fn main() {
 
@@ -37,7 +37,7 @@ fn main() {
     // not needed anymore
     drop(window_size);
 
-    let mut image = Image::new(window_size.width, window_size.height as u32, 8, 20);
+    let mut image = Image::new(window_size.width, window_size.height as u32, MAX_DEPTH, SAMPLES_PER_PIXEL);
 
 
     event_loop.run(move |event, _, control_flow| {
