@@ -39,6 +39,7 @@ fn main() {
 
     let mut image = Image::new(window_size.width, window_size.height as u32, MAX_DEPTH, SAMPLES_PER_PIXEL);
 
+    let mut window_focused = true;
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -65,11 +66,16 @@ fn main() {
                         pixels.resize_buffer(new_inner_size.width, new_inner_size.height);
                         image.resize(**new_inner_size);
                     },
+                    WindowEvent::Focused(
+                        is_focused
+                    ) => {
+                        window_focused = *is_focused;
+                    }
                     _ => {}
                 }
             },
             Event::DeviceEvent {ref event, ..} => {
-                image.handle_device(event);
+                image.handle_device(event, window_focused);
             }
 
             Event::RedrawRequested(window_id) if window_id == window.id() => {

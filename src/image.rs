@@ -7,7 +7,7 @@ use crate::objects::camera::Camera;
 use rayon::prelude::*;
 use rand::{self, Rng};
 use pixels::{Error, Pixels, SurfaceTexture};
-use winit::{event::{DeviceEvent, MouseScrollDelta, WindowEvent, MouseButton, ElementState}, dpi::PhysicalPosition};
+use winit::{event::{DeviceEvent, MouseScrollDelta, WindowEvent, MouseButton, ElementState, KeyboardInput, VirtualKeyCode}, dpi::PhysicalPosition};
 
 #[derive(Clone, Copy, PartialEq)]
 enum State {
@@ -31,7 +31,8 @@ pub struct Image {
     current_sample: u32,
     state: State,
     steps: usize,
-    full_rendered: bool
+    full_rendered: bool,
+    render_crisp: bool,
 }
 
 impl Image {
@@ -67,6 +68,7 @@ impl Image {
             state: State::Static,
             steps: 3,
             full_rendered: false,
+            render_crisp: false
         }
     }
 
@@ -84,78 +86,96 @@ impl Image {
         }
     }
 
-    pub fn handle_device(&mut self, event: &DeviceEvent) {
-        match event {
-            DeviceEvent::Button {
-                state, button, 
-            } => {
-                match button {
-                    3 /* right click */ => {
-                        match state {
-                            ElementState::Pressed => {
-                                self.state = State::Rotating;
-                                self.steps = 3;
-                            },
-                            ElementState::Released => self.state = State::Static,
-
-                        }
-                    },
-                    1 /* left click */ => {
-                        match state {
-                            ElementState::Pressed => {
-                                self.state = State::Panning;
-                                self.steps = 3;
-                            },
-                            ElementState::Released => self.state = State::Static,
-                        }
-                    },
-                    _ => {}
-                }
-            },
-            DeviceEvent::MouseMotion {delta: (x_delta, y_delta)} => if self.state != State::Static {
-                match self.state {
-                    State::Panning => {
-                        let x_relative = *x_delta / self.width as f64 * 3.0;
-                        let y_relative = *y_delta / self.height as f64 * 3.0;
-
-                        let look_at = Vector::new(self.look_at.x() - x_relative, self.look_at.y() + y_relative, self.look_at.z());
-                        let look_from = Vector::new(self.look_from.x() - x_relative, self.look_from.y() + y_relative, self.look_from.z());
-                        self.update_position_and_look(look_from, look_at);
-                        self.full_rendered = false;
-                    },
-                    State::Rotating => {
-                        self.full_rendered = false;
-                    },
-                    _ => {}
-                }
-                
-                
-                
-
-            },
-            DeviceEvent::MouseWheel {delta, ..} => {
-                let scroll = match delta {
-                    MouseScrollDelta::LineDelta(_, scroll) => *scroll,
-                    MouseScrollDelta::PixelDelta(PhysicalPosition {
-                        y: scroll,
+    pub fn handle_device(&mut self, event: &DeviceEvent, window_focused: bool) {
+        if window_focused {
+            match event {
+                DeviceEvent::Key(
+                    KeyboardInput {
+                        virtual_keycode: Some(key),
+                        state,
                         ..
-                    }) => *scroll as f32,
-                };
-                let from = Vector::new(
-                    self.look_from.x(),// + (scroll / 120.0) as f64, 
-                    self.look_from.y(), 
-                    self.look_from.z() + (scroll / 120.0) as f64
-                );
-                let at = Vector::new(
-                    self.look_at.x(),// + (scroll / 120.0) as f64, 
-                    self.look_at.y(), 
-                    self.look_at.z() + (scroll / 120.0) as f64
-                );
-                self.update_position_and_look(from, at);
-                // self.full_rendered = false;
-            },
-            _ => {}
-        }
+                    }
+                ) => {
+                    match key {
+                        VirtualKeyCode::Space => {
+                            if *state == ElementState::Pressed {
+                                self.render_crisp = !self.render_crisp;
+                            }
+                        },
+                        _ => {}
+                    }
+                },
+                DeviceEvent::Button {
+                    state, button, 
+                } => {
+                    match button {
+                        3 /* right click */ => {
+                            match state {
+                                ElementState::Pressed => {
+                                    self.state = State::Rotating;
+                                    self.steps = 3;
+                                },
+                                ElementState::Released => self.state = State::Static,
+    
+                            }
+                        },
+                        1 /* left click */ => {
+                            match state {
+                                ElementState::Pressed => {
+                                    self.state = State::Panning;
+                                    self.steps = 3;
+                                },
+                                ElementState::Released => self.state = State::Static,
+                            }
+                        },
+                        _ => {}
+                    }
+                },
+                DeviceEvent::MouseMotion {delta: (x_delta, y_delta)} => if self.state != State::Static {
+                    match self.state {
+                        State::Panning => {
+                            let x_relative = *x_delta / self.width as f64 * 3.0;
+                            let y_relative = *y_delta / self.height as f64 * 3.0;
+    
+                            let look_at = Vector::new(self.look_at.x() - x_relative, self.look_at.y() + y_relative, self.look_at.z());
+                            let look_from = Vector::new(self.look_from.x() - x_relative, self.look_from.y() + y_relative, self.look_from.z());
+                            self.update_position_and_look(look_from, look_at);
+                            self.full_rendered = false;
+                        },
+                        State::Rotating => {
+                            self.full_rendered = false;
+                        },
+                        _ => {}
+                    }
+                    
+                    
+                    
+    
+                },
+                DeviceEvent::MouseWheel {delta, ..} => {
+                    let scroll = match delta {
+                        MouseScrollDelta::LineDelta(_, scroll) => *scroll,
+                        MouseScrollDelta::PixelDelta(PhysicalPosition {
+                            y: scroll,
+                            ..
+                        }) => *scroll as f32,
+                    };
+                    let from = Vector::new(
+                        self.look_from.x(),// + (scroll / 120.0) as f64, 
+                        self.look_from.y(), 
+                        self.look_from.z() + (scroll / 120.0) as f64
+                    );
+                    let at = Vector::new(
+                        self.look_at.x(),// + (scroll / 120.0) as f64, 
+                        self.look_at.y(), 
+                        self.look_at.z() + (scroll / 120.0) as f64
+                    );
+                    self.update_position_and_look(from, at);
+                    self.full_rendered = false;
+                },
+                _ => {}
+            }
+        } 
     }
 
     pub fn update_position_and_look(&mut self, look_from: Vector, look_at: Vector) {
@@ -201,17 +221,17 @@ impl Image {
                 *pixel = 0;
             });
         }
-        println!("to clear: {:?}", start.elapsed());
     }
 
     pub fn draw(&mut self, frame: &mut [u8]) {
-        if !self.full_rendered {
+        if !self.full_rendered || !self.render_crisp {
             let frame = Mutex::new(frame);
             let samples;
 
-            if self.state == State::Static {
+            if self.state == State::Static && self.render_crisp {
                 self.steps = 1;
                 samples = self.max_samples;
+                println!("rendering full quality image...");
             } else {
                 samples = 1;
                 self.steps = 3;
@@ -230,18 +250,19 @@ impl Image {
                     frame[index + 3] = 255;
                 });
             });
-            if self.state == State::Static {
+            if self.state == State::Static && self.render_crisp {
                 self.full_rendered = true;
+                println!("complete!");
             }
-            println!("{:?}", start.elapsed());
+            // println!("{:?}", start.elapsed());
         }
     }
 
     fn get_pixel_color(&self, i: u32, j: u32, samples: u32) -> Color {
-        let depth = if self.state == State::Static {
+        let depth = if self.state == State::Static && self.render_crisp {
             self.max_depth
         } else {
-            1
+            3
         };
         let mut color = Color::new_black();
         for _ in 0..samples {
