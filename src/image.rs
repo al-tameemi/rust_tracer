@@ -1,4 +1,4 @@
-use std::{sync::Mutex, f64::INFINITY, fmt, time::Instant};
+use std::{sync::Mutex, f64::INFINITY};
 
 use crate::primitives::{color::Color, vector::{Vector, Vec3}, ray::Ray};
 use crate::shapes::{sphere::Sphere, material::Material, hitrecord::HitRecord};
@@ -6,8 +6,7 @@ use crate::objects::camera::Camera;
 
 use rayon::prelude::*;
 use rand::{self, Rng};
-use pixels::{Error, Pixels, SurfaceTexture};
-use winit::{event::{DeviceEvent, MouseScrollDelta, WindowEvent, MouseButton, ElementState, KeyboardInput, VirtualKeyCode}, dpi::PhysicalPosition};
+use winit::{event::{DeviceEvent, MouseScrollDelta, ElementState, KeyboardInput, VirtualKeyCode}, dpi::PhysicalPosition};
 
 #[derive(Clone, Copy, PartialEq)]
 enum State {
@@ -27,8 +26,6 @@ pub struct Image {
     look_from: Vector,
     look_at: Vector,
     up: Vector,
-    current_depth: u32,
-    current_sample: u32,
     state: State,
     steps: usize,
     full_rendered: bool,
@@ -63,8 +60,6 @@ impl Image {
             look_from,
             look_at,
             up,
-            current_depth: 0,
-            current_sample: 0,
             state: State::Static,
             steps: 3,
             full_rendered: false,
@@ -134,15 +129,36 @@ impl Image {
                 DeviceEvent::MouseMotion {delta: (x_delta, y_delta)} => if self.state != State::Static {
                     match self.state {
                         State::Panning => {
-                            let x_relative = *x_delta / self.width as f64 * 3.0;
+                            let x_relative = (*x_delta / self.width as f64 * 3.0).abs();
                             let y_relative = *y_delta / self.height as f64 * 3.0;
-    
-                            let look_at = Vector::new(self.look_at.x() - x_relative, self.look_at.y() + y_relative, self.look_at.z());
-                            let look_from = Vector::new(self.look_from.x() - x_relative, self.look_from.y() + y_relative, self.look_from.z());
+                            
+                            let unit = {
+                                if *x_delta >= 0.0 {
+                                    Vector::new(0.0, 1.0, 0.0)
+                                } else {
+                                    Vector::new(0.0, -1.0, 0.0)
+                                }
+                            };
+
+                            let look_direction  = self.camera.get_ray((self.width / 2) as f64, (self.height / 2) as f64).direction.cross(&Vector::new(0.0, 1.0, 0.0)).unit_vector().cross(&unit).unit_vector();
+                            let mut look_from = self.look_from + look_direction * x_relative;
+                            let mut look_at = self.look_at + look_direction * x_relative;
+
+                            look_from.y = look_from.y + y_relative;
+                            look_at.y = look_at.y + y_relative;
+
+                            // let look_at = Vector::new(self.look_at.x() - x_relative, self.look_at.y() + y_relative, self.look_at.z());
+                            // let look_from = Vector::new(self.look_from.x() - x_relative, self.look_from.y() + y_relative, self.look_from.z());
                             self.update_position_and_look(look_from, look_at);
                             self.full_rendered = false;
                         },
                         State::Rotating => {
+                            let x_relative = *x_delta / self.width as f64 * 5.0;
+                            let y_relative = *y_delta / self.height as f64 * 5.0;
+    
+                            let look_at = Vector::new(self.look_at.x() - x_relative, self.look_at.y() + y_relative, self.look_at.z());
+                            self.update_position_and_look(self.look_from, look_at);
+
                             self.full_rendered = false;
                         },
                         _ => {}
@@ -160,22 +176,27 @@ impl Image {
                             ..
                         }) => *scroll as f32,
                     };
-                    let from = Vector::new(
-                        self.look_from.x(),// + (scroll / 120.0) as f64, 
-                        self.look_from.y(), 
-                        self.look_from.z() + (scroll / 120.0) as f64
-                    );
-                    let at = Vector::new(
-                        self.look_at.x(),// + (scroll / 120.0) as f64, 
-                        self.look_at.y(), 
-                        self.look_at.z() + (scroll / 120.0) as f64
-                    );
-                    self.update_position_and_look(from, at);
+
+                    let unit = {
+                        if scroll >= 0.0 {
+                            Vector::new(0.0, 1.0, 0.0)
+                        } else {
+                            Vector::new(0.0, -1.0, 0.0)
+                        }
+                    };
+
+                    let look_direction  = self.camera.get_ray(((self.width - 1)/ 2) as f64, ((self.height - 1) / 2) as f64).direction.cross(&unit).unit_vector();
+                    let look_from = self.look_from + look_direction * (scroll / 120.0).abs();
+                    let look_at = self.look_at + look_direction * (scroll / 120.0).abs();
+
+                    self.update_position_and_look(look_from, look_at);
                     self.full_rendered = false;
                 },
                 _ => {}
             }
-        } 
+        } else {
+            self.state = State::Static;
+        }
     }
 
     pub fn update_position_and_look(&mut self, look_from: Vector, look_at: Vector) {
@@ -190,32 +211,7 @@ impl Image {
         );
     }
 
-    pub fn update_position(&mut self, look_from: Vector) {
-        self.look_from = look_from;
-        self.camera = Camera::from_ratio(
-            self.width as f64 / self.height as f64, 
-            self.fov, 
-            self.look_from, 
-            self.look_at, 
-            self.up
-        );
-    }
-    
-    pub fn height(&self) -> u32 {
-        self.height
-    }
-    pub fn width(&self) -> u32 {
-        self.width
-    }
-    pub fn max_samples(&self) -> u32 {
-        self.max_samples
-    }
-    pub fn max_depth(&self) -> u32 {
-        self.max_depth
-    }
-
     pub fn clear(&mut self, frame: &mut [u8]) {
-        let start = Instant::now();
         if !self.full_rendered {
             let _ = frame.into_par_iter().for_each(|pixel| {
                 *pixel = 0;
@@ -236,7 +232,6 @@ impl Image {
                 samples = 1;
                 self.steps = 3;
             }
-            let start = Instant::now();
             let _ = (0..self.width).into_par_iter().step_by(self.steps).for_each(|i| {
                 let _ = (0..self.height).into_par_iter().step_by(self.steps).for_each(|j| {
     

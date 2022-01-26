@@ -1,4 +1,4 @@
-use crate::primitives::vector::Vector;
+use crate::primitives::vector::{Vector};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
